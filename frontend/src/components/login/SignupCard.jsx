@@ -19,12 +19,21 @@ export const SignupCard = () => {
             const response = await axios.post(`${url}/auth/register`, {
                 email, password, username, name
             })
-            context.setAuth(response.data.user)
-            localStorage.setItem('user', JSON.stringify(response.data.user))
-            localStorage.setItem("access_token", response.data.access_token)
-            localStorage.setItem("refresh_token", response.data.refresh_token)
+            
+            // ✅ 수정: response.data.data로 변경
+            const { user, token } = response.data.data;
+            
+            context.setAuth(user)
+            localStorage.setItem('user', JSON.stringify(user))
+            localStorage.setItem("access_token", token)
+            localStorage.setItem("token", token)  // 추가
+            
+            // 페이지 리로드 또는 리다이렉트
+            window.location.href = '/';
         } catch (err) {
-            context.throwErr(err.response.data.message)
+            console.error('Signup error:', err);
+            const errorMessage = err.response?.data?.data?.message || err.response?.data?.message || '회원가입 실패';
+            context.throwErr(errorMessage)
         }
     }
 

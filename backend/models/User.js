@@ -1,122 +1,30 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    require: [true, "Enter Username"],
-    unique: [true, "Username already exist"],
-  },
-  name: {
-    type: String,
-  },
-  email: {
-    type: String,
-    require: [true, "Enter email"],
-    unique: [true, "User with email already exist"],
-  },
-  avatar: String,
-  followers: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
-  password: {
-    type: String,
-    minLength: 6,
-  },
-  followings: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
-  posts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",
-    },
-  ],
-  saved: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",
-    },
-  ],
-  bio: {
-    type: String,
-    maxLength: 150,
-  },
-  website: String,
-
-  notifications: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      // 1 -> like
-      // 2 -> comment
-      // 3 -> follow
-      NotificationType: Number,
-      content: String,
-      seen: {
-        type: Boolean,
-        default: false,
-      },
-      postId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post",
-        default: undefined,
-      },
-      time: {
-        type: Date,
-        default: Date.now(),
-      },
-    },
-  ],
-  private: {
-    type: Boolean,
-    default: false,
-  },
-  requestSent: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    },
-  ],
-  requestReceived: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    },
-  ],
-  highlights: [
-    {
-      stories: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Story",
-        },
-      ],
-      name: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
-  online: {
-    type: Boolean,
-    default: false,
-  },
-  lastSeen: {
-    type: Date,
-    default: Date.now(),
-  },
+const User = sequelize.define('User', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    username: { type: DataTypes.STRING(50), allowNull: false, unique: true },
+    email: { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    password: { type: DataTypes.STRING(255), allowNull: false },
+    full_name: { type: DataTypes.STRING(100), field: 'full_name' },
+    bio: { type: DataTypes.TEXT },
+    profile_picture: { type: DataTypes.STRING(255), defaultValue: 'default-avatar.png', field: 'profile_picture' },
+    followers_count: { type: DataTypes.INTEGER, defaultValue: 0, field: 'followers_count' },
+    following_count: { type: DataTypes.INTEGER, defaultValue: 0, field: 'following_count' },
+    posts_count: { type: DataTypes.INTEGER, defaultValue: 0, field: 'posts_count' }
+}, {
+    tableName: 'users',
+    timestamps: true,
+    underscored: true
 });
 
-module.exports = new mongoose.model("User", userSchema);
+User.beforeCreate(async (user) => {
+    if (user.password) user.password = await bcrypt.hash(user.password, 10);
+});
+
+User.prototype.comparePassword = async function(pwd) {
+    return await bcrypt.compare(pwd, this.password);
+};
+
+module.exports = User;

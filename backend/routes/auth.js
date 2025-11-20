@@ -1,21 +1,31 @@
-const router = require("express").Router();
-const {
-  registerUser,
-  tokenManage,
-  logout,
-  googleoauth,
-} = require("../controllers/auth");
-const { loginUser } = require("../controllers/auth");
-const { isAuthenticated } = require("../middlewares/auth");
+const express = require('express');
+const router = express.Router();
+const jwt = require('jsonwebtoken');
+const { User } = require('../models');
 
-router.route("/register").post(registerUser);
+router.post('/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        const user = await User.create({ username, email, password, full_name: username });
+        const token = jwt.sign({ id: user.id }, process.env.JWT_Secret, { expiresIn: '7d' });
+        res.status(201).json({ success: true, token, user: { id: user.id, username: user.username } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
-router.route("/login").post(loginUser);
-
-router.route("/token").post(tokenManage);
-
-router.route("/logout").post(isAuthenticated, logout);
-
-router.route("/google/oauth").get(googleoauth);
+router.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ where: { username } });
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(401).json({ success: false, message: '인증 실패' });
+        }
+        const token = jwt.sign({ id: user.id }, process.env.JWT_Secret, { expiresIn: '7d' });
+        res.json({ success: true, token, user: { id: user.id, username: user.username } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 module.exports = router;

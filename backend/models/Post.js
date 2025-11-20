@@ -1,52 +1,17 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const postSchema = new mongoose.Schema({
-  caption: String,
-  files: [
-    {
-      fileType: String,
-      link: {
-        type: String,
-        require: true,
-      },
-    },
-  ],
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
-  saved: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
-  comments: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      comment: {
-        type: String,
-        required: [true, "Empty comment not allowed"],
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now(),
-      },
-    },
-  ],
+const Post = sequelize.define('Post', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: false, field: 'user_id' },
+    caption: { type: DataTypes.TEXT },
+    image_url: { type: DataTypes.STRING(255), allowNull: false, field: 'image_url' },
+    likes_count: { type: DataTypes.INTEGER, defaultValue: 0, field: 'likes_count' },
+    comments_count: { type: DataTypes.INTEGER, defaultValue: 0, field: 'comments_count' }
+}, {
+    tableName: 'posts',
+    timestamps: true,
+    underscored: true
 });
 
-module.exports = new mongoose.model("Post", postSchema);
+module.exports = Post;

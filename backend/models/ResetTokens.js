@@ -1,14 +1,27 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const resetPasswordSchema = new mongoose.Schema({
+const ResetToken = sequelize.define('ResetToken', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     token: {
-        type: String,
-        required: true
+        type: DataTypes.STRING(255),
+        allowNull: false,
+        unique: true
     },
     email: {
-        type: String,
-        required: true,
+        type: DataTypes.STRING(255),
+        allowNull: false
     }
-}, { timestamps: true })
+}, {
+    tableName: 'reset_tokens',
+    timestamps: true,
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
+});
 
-module.exports = mongoose.model('reset', resetPasswordSchema)
+module.exports = ResetToken;

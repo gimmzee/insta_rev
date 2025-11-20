@@ -53,8 +53,8 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/auth', require('./routes/auth'));
-// app.use('/user', require('./routes/user'));
-app.use('/post', require('./routes/post'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/posts', require('./routes/posts'));
 
 // 404 핸들러
 app.use((req, res) => {
